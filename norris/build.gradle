@@ -1,0 +1,84 @@
+
+
+
+buildscript {
+	ext {
+		springBootVersion = '1.5.4.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+		   maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+
+    classpath "com.moowork.gradle:gradle-node-plugin:1.3.1"
+		// classpath('com.moowork.gradle:gradle-node-plugin:0.12')
+	}
+	
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'application'
+apply plugin: 'com.moowork.node'
+
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter-web')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+        implementation('com.google.code.gson:gson:2.8.6')
+		compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+		compile group: 'com.mashape.unirest', name: 'unirest-java', version: '1.3.1'
+}
+
+def webappDir = "$projectDir/src/main/webapp"
+sourceSets {
+	main {
+		resources {
+			srcDirs = ["$webappDir/dist", "$projectDir/src/main/resources"]
+		}
+	}
+}
+
+mainClassName  = 'com.joev.example.angularboot.AngularbootApplication'
+
+processResources {
+	dependsOn "buildAngular"
+}
+
+task buildAngular(type:Exec) {
+	dependsOn "installAngular"
+	workingDir "$webappDir"
+	inputs.dir "$webappDir"
+	group = BasePlugin.BUILD_GROUP
+//	outputs.dir "$webappDir/dist"
+	if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")){
+		commandLine "ng.cmd", "build"
+	} else {
+		commandLine "ng", "build"
+	}
+}
+
+task installAngular(type:Exec) {
+	workingDir "$webappDir"
+	inputs.dir "$webappDir"
+	group = BasePlugin.BUILD_GROUP
+//	outputs.dir "$webappDir/dist"
+	if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")){
+		commandLine "npm.cmd", "install", "--no-optional", "--no-shrinkwrap"
+	} else {
+		commandLine "npm", "install", "--no-optional", "--no-shrinkwrap"
+	}
+}
+
